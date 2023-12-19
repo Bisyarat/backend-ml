@@ -1,11 +1,12 @@
+# app.py
+
 from flask import Flask
+from routes import main_bp
 
 app = Flask(__name__)
 
-@app.route('/proses-cinta')
-def index():
-    return "hello world"
+# Registrasi blueprint
+app.register_blueprint(main_bp)
 
- 
 if __name__ == '__main__':
     app.run(debug=True)
