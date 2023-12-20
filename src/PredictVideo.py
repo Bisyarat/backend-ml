@@ -4,42 +4,63 @@ import os
 import cv2
 import numpy as np
 from sklearn.metrics import accuracy_score
+from .StorageUpload import StorageUpload
 
 class PredictVideo:
-    MODEL_PATH = 'model.h5'
-    TEMP_VIDEO_PATH = 'temp_video'
-    TEMP_IMAGES_PATH = 'temp_images'
+    
+    def __init__(self):    
+        self.MODEL_PATH = 'model.h5'
+        self.TEMP_VIDEO_PATH = 'temp_video'
+        self.TEMP_IMAGES_PATH = 'temp_images'
 
     def predict_video(self,post_video):
+        VIDEO_PATH, IMAGES_PATH = self.save_and_extract_video(post_video)
+        try:
+            result_predict = self.predict_images(IMAGES_PATH)
+            gs_path = None
+
+            if result_predict:
+                StorageUpload_instance = StorageUpload()
+                video_name = VIDEO_PATH.split('/')[1]
+                gs_path = StorageUpload_instance.upload_file(VIDEO_PATH,video_name)
+
+            return result_predict,gs_path
+        except Exception as e:
+            print(f"Terjadi kesalahan: {e}")
+    
+    def predict_images(self,imagesPath):
+        IMAGES_PATH = imagesPath
         MODEL_TF = self.load_model_tf()
-        IMAGES_PATH = self.save_and_extract_video(post_video)
+        try:
+            predictions = []
+            labels = []
+            
+            for frame in os.listdir(IMAGES_PATH):
+                frame_path = os.path.join(IMAGES_PATH, frame)
+            
+                image = cv2.imread(frame_path)
+                image = cv2.resize(image, (224, 224))
+
+                img = image / 255
+
+                img = np.expand_dims(img, axis=0)
+
+                predicted_image = MODEL_TF.predict(img)
+
+                predicted_class = np.argmax(predicted_image)
+
+                true_label = int(frame.split('_')[0])
+
+                labels.append(true_label)
+                predictions.append(predicted_class)
+            
+            accuracy = self.calculate_acc_score(labels,predictions)
+            acc_score = "{:.5f}".format(accuracy)
+            return accuracy
         
-        predictions = []
-        labels = []
-        
-        for frame in os.listdir(IMAGES_PATH):
-            frame_path = os.path.join(IMAGES_PATH, frame)
-        
-            image = cv2.imread(frame_path)
-            image = cv2.resize(image, (224, 224))
-
-            img = image / 255
-
-            img = np.expand_dims(img, axis=0)
-
-            predicted_image = MODEL_TF.predict(img)
-
-            predicted_class = np.argmax(predicted_image)
-
-            true_label = int(frame.split('_')[0])
-
-            labels.append(true_label)
-            predictions.append(predicted_class)
-        
-        accuracy = self.calculate_acc_score(labels,predictions)
-        acc_score = "{:.5f}".format(accuracy)
-        return acc_score
-        
+        except Exception as e:
+            print(f"Terjadi kesalahan: {e}")
+            
     def calculate_acc_score(self,labelsArr,predictionsArr):
         correct_predictions = sum(label == prediction for label, prediction in zip(labelsArr, predictionsArr))
         total_predictions = len(predictionsArr)
@@ -54,9 +75,9 @@ class PredictVideo:
         if not os.path.exists(video_path):
             os.mkdir(video_path)
         
-        path = video_path + '/'+ f'{video.filename}'
-        video.save(path)
-        return self.extract_frame(path)
+        saved_vid_path = video_path + '/'+ f'{video.filename}'
+        video.save(saved_vid_path)
+        return saved_vid_path, self.extract_frame(saved_vid_path)
 
     def extract_frame(self, video_path):
         images_save_path =  self.TEMP_IMAGES_PATH
