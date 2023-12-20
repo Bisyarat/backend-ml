@@ -1,60 +1,74 @@
 import tensorflow as tf
+from tensorflow.keras.models import load_model
 import os
 import cv2
 import numpy as np
 from sklearn.metrics import accuracy_score
 
-
 class PredictVideo:
     MODEL_PATH = 'model.h5'
-    TEMP_VIDEO_PATH = 'temp_video/'
+    TEMP_VIDEO_PATH = 'temp_video'
     TEMP_IMAGES_PATH = 'temp_images'
 
-    def __init__(self, video):
-        # model = self.load_model(self.MODEL_PATH)
-        video_path = self.save_temp_video(video)
-        frame_images_path = self.extract_frame(video_path)
-
+    def predict_video(self,post_video):
+        MODEL_TF = self.load_model_tf()
+        IMAGES_PATH = self.save_and_extract_video(post_video)
+        
         predictions = []
         labels = []
+        
+        for frame in os.listdir(IMAGES_PATH):
+            frame_path = os.path.join(IMAGES_PATH, frame)
+        
+            image = cv2.imread(frame_path)
+            image = cv2.resize(image, (224, 224))
 
-        # for frame in os.listdir(frame_images_path):
-        #     frame_path = os.path.join(frame_images_path, frame)
+            img = image / 255
 
-        #     image = cv2.imread(frame_path)
-        #     image = cv2.resize(image, (224, 224))
+            img = np.expand_dims(img, axis=0)
 
-        #     img = image / 255
+            predicted_image = MODEL_TF.predict(img)
 
-        #     img = np.expand_dims(img, axis=0)
+            predicted_class = np.argmax(predicted_image)
 
-        #     predicted_image = model.predict(img)
+            true_label = int(frame.split('_')[0])
 
-        #     predicted_class = np.argmax(predicted_image)
-
-        #     true_label = (frame.split('_')[0])
-
-        #     labels.append(true_label)
-        #     predictions.append(predicted_class)
-
-        # accuracy = accuracy_score(predictions, labels)
-
-        # return accuracy
-
-    def save_temp_video(self, video):
-        video_path = self.TEMP_VIDEO_PATH + video.filename
-        if not video.save(video_path):
-            return False
-        return video_path
+            labels.append(true_label)
+            predictions.append(predicted_class)
+        
+        accuracy = self.calculate_acc_score(labels,predictions)
+        acc_score = "{:.5f}".format(accuracy)
+        return acc_score
+        
+    def calculate_acc_score(self,labelsArr,predictionsArr):
+        correct_predictions = sum(label == prediction for label, prediction in zip(labelsArr, predictionsArr))
+        total_predictions = len(predictionsArr)
+        accuracy = correct_predictions / total_predictions if total_predictions > 0 else 0
+        return accuracy
+    
+    def load_model_tf(self):
+        return load_model(self.MODEL_PATH)
+    
+    def save_and_extract_video(self, video):
+        video_path = self.TEMP_VIDEO_PATH
+        if not os.path.exists(video_path):
+            os.mkdir(video_path)
+        
+        path = video_path + '/'+ f'{video.filename}'
+        video.save(path)
+        return self.extract_frame(path)
 
     def extract_frame(self, video_path):
-        filename = video_path.filename
-        images_path = os.path.join(self.TEMP_IMAGES_PATH, filename)
-        img_filename = filename.split('_')[0]
-
+        images_save_path =  self.TEMP_IMAGES_PATH
+        filename = os.path.basename(video_path).split('.')[0]
+        filename = filename.split('_')
+        
+        images_folder_path = os.path.join(images_save_path,f'{filename[0]}_{filename[2]}')
+        extract_frame_name = f'{filename[0]}_{filename[2]}'
+    
         try:
-            if os.path.exists(images_path):
-                os.makedirs(images_path)
+            if not os.path.exists(images_folder_path):
+                os.makedirs(images_folder_path)
 
             cap = cv2.VideoCapture(video_path)
 
@@ -68,16 +82,14 @@ class PredictVideo:
                 if not ret:
                     break
 
-                frame_filename = os.path.join(
-                    images_path, f"{img_filename}_{frame_count:04d}.jpg")
-                cv2.imwrite(frame_filename, frame)
+                frame_filename = f"{extract_frame_name}_{frame_count}.jpg"
+                
+                cv2.imwrite(os.path.join(images_folder_path, frame_filename),frame)
+                frame_count += 1
 
             cap.release()
 
-            return images_path
+            return images_folder_path
         except Exception as e:
             print(f"Terjadi kesalahan: {e}")
 
-        def load_model(self, model_path):
-            model = tf.keras.models.load_model(model_path)
-            return model
