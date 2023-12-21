@@ -1,5 +1,3 @@
 venv
-model.h5
 temp_images
 temp_video
-ServiceKeyCloudGCP.json
