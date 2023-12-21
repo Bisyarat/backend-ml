@@ -62,7 +62,8 @@ class PredictVideo:
     def calculate_acc_score(self,labelsArr,predictionsArr):
         correct_predictions = sum(label == prediction for label, prediction in zip(labelsArr, predictionsArr))
         total_predictions = len(predictionsArr)
-        accuracy = correct_predictions / total_predictions if total_predictions > 0 else 0
+        # accuracy = correct_predictions / total_predictions if total_predictions > 0 else 0
+        accuracy = correct_predictions / total_predictions
         return accuracy
     
     def load_model_tf(self):
