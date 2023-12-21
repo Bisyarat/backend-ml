@@ -2,17 +2,25 @@ from flask import request ,jsonify
 from . import main_bp
 from .PredictVideo import PredictVideo
 
+ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mkv', 'mov'} 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @main_bp.route('/upload_video', methods=['POST'])
 def upload_video():
     file = request.files['video']
-    if file:
-        try:
-            predict_video_instance = PredictVideo()
-            predicted_vid = predict_video_instance.predict_video(file)
-            response_data = {'message': 'File berhasil diunggah ke GCS', 'gcs_path': predicted_vid}
-            return jsonify(response_data)
-        except FileNotFoundError:
-            raise FileNotFoundError(f"File not found")
-        except Exception as e:
-            raise Exception(f"Error : {e}")
-    return 'Gagal memprediksi Video'
+    
+    if file and allowed_file(file.filename):
+    
+        predict_video_instance = PredictVideo()
+        result_predict , url_video = predict_video_instance.predict_and_upload(file)
+        
+        return jsonify({
+                    "data" : {
+                        "result_accuracy" : result_predict,
+                        "url_video" : url_video
+                    }       
+                })
+
+    return 'File not allowed or file not found!'
+
