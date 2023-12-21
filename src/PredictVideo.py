@@ -31,35 +31,32 @@ class PredictVideo:
     def predict_images(self,imagesPath):
         IMAGES_PATH = imagesPath
         MODEL_TF = self.load_model_tf()
-        try:
-            predictions = []
-            labels = []
-            
-            for frame in os.listdir(IMAGES_PATH):
-                frame_path = os.path.join(IMAGES_PATH, frame)
-            
-                image = cv2.imread(frame_path)
-                image = cv2.resize(image, (224, 224))
-
-                img = image / 255
-
-                img = np.expand_dims(img, axis=0)
-
-                predicted_image = MODEL_TF.predict(img)
-
-                predicted_class = np.argmax(predicted_image)
-
-                true_label = int(frame.split('_')[0])
-
-                labels.append(true_label)
-                predictions.append(predicted_class)
-            
-            accuracy = self.calculate_acc_score(labels,predictions)
-            acc_score = "{:.5f}".format(accuracy)
-            return accuracy
         
-        except Exception as e:
-            print(f"Terjadi kesalahan: {e}")
+        predictions = []
+        labels = []
+        
+        for frame in os.listdir(IMAGES_PATH):
+            frame_path = os.path.join(IMAGES_PATH, frame)
+        
+            image = cv2.imread(frame_path)
+            image = cv2.resize(image, (224, 224))
+
+            img = image / 255
+
+            img = np.expand_dims(img, axis=0)
+
+            predicted_image = MODEL_TF.predict(img)
+
+            predicted_class = np.argmax(predicted_image)
+
+            true_label = int(frame.split('_')[0])
+
+            labels.append(true_label)
+            predictions.append(predicted_class)
+        
+        accuracy = self.calculate_acc_score(labels,predictions)
+        return accuracy
+
             
     def calculate_acc_score(self,labelsArr,predictionsArr):
         correct_predictions = sum(label == prediction for label, prediction in zip(labelsArr, predictionsArr))
