@@ -1,6 +1,11 @@
+# app.py
+import os
+from flask import Flask
+from src import main_bp
 from flask import request ,jsonify
-from . import main_bp
-from .PredictVideo import PredictVideo
+from PredictVideo import PredictVideo
+
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'credentials/ServiceKeyCloudGCP.json'
 
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mkv', 'mov'} 
 def allowed_file(filename):
@@ -26,4 +31,10 @@ def upload_video():
 
 @main_bp.route('/', methods=['GET'])
 def index():
-    return 'cinta'
+    return 'Backend Bisyarat'
+
+
+app = Flask(__name__)
+
+if __name__ == '__main__':
+    app.run(debug=True)

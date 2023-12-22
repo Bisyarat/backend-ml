@@ -1,5 +1,6 @@
 import os
 from google.cloud import storage
+
 class StorageUpload:
     def __init__(self):
         self.project_id = 'testing-407302'

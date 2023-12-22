@@ -4,7 +4,7 @@ import os
 import cv2
 import numpy as np
 import shutil
-from .StorageUpload import StorageUpload
+from StorageUpload import StorageUpload
 
 class PredictVideo:
     
