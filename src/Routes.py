@@ -24,3 +24,6 @@ def upload_video():
 
     return 'File not allowed or file not found!'
 
+@main_bp.route('/', methods=['GET'])
+def index():
+    return 'cinta'

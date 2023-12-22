@@ -1,10 +1,9 @@
-import tensorflow as tf
+# import tensorflow as tf
 from tensorflow.keras.models import load_model
 import os
 import cv2
 import numpy as np
 import shutil
-from sklearn.metrics import accuracy_score
 from .StorageUpload import StorageUpload
 
 class PredictVideo:
@@ -49,7 +48,7 @@ class PredictVideo:
             img = np.expand_dims(img, axis=0)
 
             predicted_image = MODEL_TF.predict(img)
-            predicted_class = np.argmax(predicted_image)
+            predicted_class = str(np.argmax(predicted_image))
 
             true_label = frame.split('_')[0]
 
