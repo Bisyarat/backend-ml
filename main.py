@@ -1,7 +1,6 @@
 # app.py
 import os
 from flask import Flask
-from src import main_bp
 from flask import request ,jsonify
 from PredictVideo import PredictVideo
 
