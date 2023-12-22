@@ -5,12 +5,13 @@ from flask import request ,jsonify
 from PredictVideo import PredictVideo
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'credentials/ServiceKeyCloudGCP.json'
+app = Flask(__name__)
 
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mkv', 'mov'} 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@main_bp.route('/upload_video', methods=['POST'])
+@app.route('/upload_video', methods=['POST'])
 def upload_video():
     file = request.files['video']
     
@@ -28,12 +29,9 @@ def upload_video():
 
     return 'File not allowed or file not found!'
 
-@main_bp.route('/', methods=['GET'])
+@app.route('/', methods=['GET'])
 def index():
     return 'Backend Bisyarat'
-
-
-app = Flask(__name__)
 
 if __name__ == '__main__':
     app.run(debug=True)
